@@ -4,127 +4,182 @@ import api from '../api/axios';
 
 export default function Asistencia() {
     const [bloques, setBloques] = useState([]);
-    const [bloqueSeleccionado, setBloqueSeleccionado] = useState('');
-    const [alumnos, setAlumnos] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [bloqueSeleccionado, setBloqueSeleccionado] = useState(null);
+    const [reservas, setReservas] = useState([]);
+    const [fechaFiltro, setFechaFiltro] = useState(() => {
+        // Obtenemos la fecha local de hoy por defecto
+        const fecha = new Date();
+        const year = fecha.getFullYear();
+        const month = String(fecha.getMonth() + 1).padStart(2, '0');
+        const day = String(fecha.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    });
 
-    // 1. Cargamos los bloques disponibles
     useEffect(() => {
-        const fetchBloques = async () => {
-            try {
-                const resp = await api.get('bloques/');
-                setBloques(resp.data);
-            } catch (error) {
-                console.error("Error cargando bloques", error);
-            }
-        };
-        fetchBloques();
-    }, []);
+        cargarBloques();
+        // Si cambiamos de fecha, deseleccionamos el bloque actual
+        setBloqueSeleccionado(null);
+        setReservas([]);
+    }, [fechaFiltro]);
 
-    // 2. Cargamos los alumnos cuando el entrenador elige un bloque
-    useEffect(() => {
-        if (!bloqueSeleccionado) {
-            setAlumnos([]);
-            return;
-        }
-
-        const fetchAlumnos = async () => {
-            setIsLoading(true);
-            try {
-                // Llama a la ruta personalizada que hicimos en Django
-                const resp = await api.get(`bloques/${bloqueSeleccionado}/reservas_hoy/`);
-                setAlumnos(resp.data);
-            } catch (error) {
-                console.error("Error cargando la lista", error);
-                alert("Error al cargar la lista. Verifica tus permisos.");
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchAlumnos();
-    }, [bloqueSeleccionado]);
-
-    // 3. Función para castigar o salvar al alumno
-    const marcarAsistencia = async (reservaId, estado) => {
+    const cargarBloques = async () => {
         try {
-            await api.post(`reservas/${reservaId}/marcar_asistencia/`, { estado });
+            const resp = await api.get('bloques/');
+            // Filtramos en el frontend para mostrar solo los de la fecha seleccionada
+            const bloquesDelDia = resp.data.filter(b => b.fecha === fechaFiltro);
+            setBloques(bloquesDelDia);
+        } catch (error) {
+            console.error("Error al cargar bloques:", error);
+        }
+    };
 
-            // Actualizamos la lista local para que el botón cambie al instante
-            setAlumnos(alumnos.map(al =>
-                al.id === reservaId ? { ...al, estado } : al
+    const verAsistencia = async (bloque) => {
+        setBloqueSeleccionado(bloque);
+        try {
+            const resp = await api.get(`bloques/${bloque.id}/reservas_hoy/`);
+            setReservas(resp.data);
+        } catch (error) {
+            console.error("Error al cargar reservas:", error);
+        }
+    };
+
+    const registrarAsistencia = async (reservaId, nuevoEstado) => {
+        try {
+            await api.post(`reservas/${reservaId}/marcar_asistencia/`, { estado: nuevoEstado });
+            
+            // Actualizamos visualmente la lista sin tener que recargar desde el servidor
+            setReservas(reservas.map(res => 
+                res.id === reservaId ? { ...res, estado: nuevoEstado } : res
             ));
         } catch (error) {
-            alert("Error al guardar asistencia. Puede que ya haya sido marcada.");
+            alert("Error al registrar la asistencia.");
         }
     };
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-gray-50">
             <Navbar />
-
-            <main className="container mx-auto p-6 max-w-4xl">
-                <h2 className="text-3xl font-bold text-[#003057] mb-6">Control de Asistencia</h2>
-
-                {/* Selector de Bloque */}
-                <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-                    <label className="block text-gray-700 font-bold mb-2">Selecciona el bloque de hoy:</label>
-                    <select
-                        value={bloqueSeleccionado}
-                        onChange={(e) => setBloqueSeleccionado(e.target.value)}
-                        className="w-full border border-gray-300 p-3 rounded focus:ring-2 focus:ring-[#003057] focus:outline-none"
-                    >
-                        <option value="">-- Elige un horario --</option>
-                        {bloques.map(bloque => (
-                            <option key={bloque.id} value={bloque.id}>
-                                {bloque.dia} | {bloque.hora_inicio.substring(0, 5)} - {bloque.hora_fin.substring(0, 5)}
-                            </option>
-                        ))}
-                    </select>
+            <main className="container mx-auto p-6">
+                <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                    <h2 className="text-3xl font-black text-[#003057]">Control de Asistencia</h2>
+                    
+                    {/* Buscador por Fecha */}
+                    <div className="flex items-center gap-3 bg-white p-2 rounded-lg shadow">
+                        <label className="font-bold text-gray-700 ml-2">Fecha:</label>
+                        <input 
+                            type="date" 
+                            className="border p-2 rounded outline-none cursor-pointer"
+                            value={fechaFiltro}
+                            onChange={(e) => setFechaFiltro(e.target.value)}
+                        />
+                    </div>
                 </div>
 
-                {/* Lista de Alumnos */}
-                {isLoading ? (
-                    <div className="text-center text-xl text-gray-600">Cargando lista...</div>
-                ) : bloqueSeleccionado && alumnos.length === 0 ? (
-                    <div className="text-center text-xl text-gray-600 bg-white p-6 rounded shadow">
-                        Nadie ha reservado para este bloque hoy.
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* COLUMNA IZQUIERDA: Lista de Bloques */}
+                    <div className="lg:col-span-1 bg-white p-6 rounded-xl shadow-md h-fit border-t-4 border-[#FFC72C]">
+                        <h3 className="text-xl font-bold mb-4 border-b pb-2">Módulos del Día</h3>
+                        
+                        {bloques.length === 0 ? (
+                            <p className="text-gray-500 italic">No hay bloques registrados para esta fecha.</p>
+                        ) : (
+                            <div className="space-y-3">
+                                {bloques.map(b => (
+                                    <button 
+                                        key={b.id}
+                                        onClick={() => verAsistencia(b)}
+                                        className={`w-full text-left p-4 rounded-lg border transition ${
+                                            bloqueSeleccionado?.id === b.id 
+                                                ? 'bg-[#003057] text-white border-[#003057]' 
+                                                : 'bg-gray-50 hover:bg-blue-50 border-gray-200'
+                                        }`}
+                                    >
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-black">MÓDULO {b.codigo_bloque?.replace('B', '')}</span>
+                                            <span className="text-sm">{b.hora_inicio.substring(0,5)}</span>
+                                        </div>
+                                        <p className={`text-sm mt-1 ${bloqueSeleccionado?.id === b.id ? 'text-blue-200' : 'text-gray-500'}`}>
+                                            Coach: {b.entrenador_nombre || 'Sin asignar'}
+                                        </p>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
-                ) : (
-                    <div className="grid grid-cols-1 gap-4">
-                        {alumnos.map((reserva) => (
-                            <div key={reserva.id} className="bg-white rounded-lg shadow p-4 flex flex-col md:flex-row justify-between items-center border-l-4 border-blue-500">
-                                <div className="mb-4 md:mb-0 text-center md:text-left">
-                                    <h3 className="text-lg font-bold text-gray-800">{reserva.alumno_nombre}</h3>
-                                    <p className="text-sm text-gray-500">Estado actual: <span className="font-semibold">{reserva.estado}</span></p>
+
+                    {/* COLUMNA DERECHA: Lista de Alumnos (Pase de lista) */}
+                    <div className="lg:col-span-2">
+                        {bloqueSeleccionado ? (
+                            <div className="bg-white p-6 rounded-xl shadow-md border-t-4 border-[#003057]">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-2xl font-bold text-gray-800">
+                                        Pase de Lista: Módulo {bloqueSeleccionado.codigo_bloque?.replace('B', '')}
+                                    </h3>
+                                    <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-bold text-sm">
+                                        {reservas.length} Inscritos
+                                    </span>
                                 </div>
 
-                                {/* Botones de Acción */}
-                                <div className="flex gap-2">
-                                    {reserva.estado === 'PEN' ? (
-                                        <>
-                                            <button
-                                                onClick={() => marcarAsistencia(reserva.id, 'PRE')}
-                                                className="bg-green-100 hover:bg-green-200 text-green-700 font-bold py-2 px-6 rounded border border-green-300 transition"
-                                            >
-                                                ✓ Presente
-                                            </button>
-                                            <button
-                                                onClick={() => marcarAsistencia(reserva.id, 'AUS')}
-                                                className="bg-red-100 hover:bg-red-200 text-red-700 font-bold py-2 px-6 rounded border border-red-300 transition"
-                                            >
-                                                ✗ Ausente
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <span className={`py-2 px-6 rounded font-bold ${reserva.estado === 'PRE' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
-                                            {reserva.estado === 'PRE' ? 'Asistió' : 'Faltó'}
-                                        </span>
-                                    )}
-                                </div>
+                                {reservas.length === 0 ? (
+                                    <div className="text-center py-10">
+                                        <p className="text-xl text-gray-400 font-bold">No hay reservas para este módulo.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {reservas.map(res => (
+                                            <div key={res.id} className="flex flex-col sm:flex-row justify-between items-center p-4 border rounded-lg hover:shadow-md transition bg-gray-50">
+                                                <div className="mb-3 sm:mb-0 text-center sm:text-left">
+                                                    
+                                                    {/* Nombre y Etiqueta de Sobrecupo */}
+                                                    <p className="font-bold text-lg flex flex-wrap items-center gap-2 justify-center sm:justify-start">
+                                                        {res.alumno_nombre.split(' (')[0]}
+                                                        {res.es_sobrecupo && (
+                                                            <span className="text-[10px] bg-purple-100 text-purple-800 px-2 py-1 rounded-full uppercase font-black border border-purple-300">
+                                                                ⭐ Sobrecupo
+                                                            </span>
+                                                        )}
+                                                    </p>
+                                                    
+                                                    <p className="text-sm text-gray-500 font-mono mt-1">
+                                                        RUT: {res.alumno_nombre.split(' (')[1]?.replace(')', '')}
+                                                    </p>
+                                                </div>
+
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        onClick={() => registrarAsistencia(res.id, 'PRE')}
+                                                        className={`px-4 py-2 rounded font-bold transition flex items-center gap-2 ${
+                                                            res.estado === 'PRE' 
+                                                                ? 'bg-green-500 text-white shadow-inner' 
+                                                                : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                        }`}
+                                                    >
+                                                        ✅ Presente
+                                                    </button>
+                                                    
+                                                    <button 
+                                                        onClick={() => registrarAsistencia(res.id, 'AUS')}
+                                                        className={`px-4 py-2 rounded font-bold transition flex items-center gap-2 ${
+                                                            res.estado === 'AUS' 
+                                                                ? 'bg-red-500 text-white shadow-inner' 
+                                                                : 'bg-red-100 text-red-700 hover:bg-red-200'
+                                                        }`}
+                                                    >
+                                                        ❌ Ausente
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                        ))}
+                        ) : (
+                            <div className="bg-gray-100 p-12 rounded-xl border-2 border-dashed border-gray-300 text-center h-full flex flex-col justify-center items-center">
+                                <p className="text-xl font-bold text-gray-400">Selecciona un bloque a la izquierda para pasar lista.</p>
+                            </div>
+                        )}
                     </div>
-                )}
+                </div>
             </main>
         </div>
     );

@@ -13,9 +13,8 @@ export default function Login() {
     const handleRutChange = (e) => {
         let value = e.target.value;
 
-        // BYPASS PARA EL ADMINISTRADOR: Si escribes letras (ej: "brancoo"), no lo formatea.
-        // Solo aplica el formato de RUT si estás escribiendo números y/o la letra K.
-        if (/[a-zA-jL-ZñÑ]/.test(value)) {
+        // BYPASS: Detecta cualquier letra que NO sea K o k
+        if (/[a-jl-zñ]/i.test(value)) {
             setRut(value);
             return;
         }
@@ -85,4 +84,12 @@ export default function Login() {
                     <button type="submit" disabled={isLoading} className="w-full bg-[#003057] hover:bg-blue-900 text-white font-black py-3 rounded transition text-lg mt-4 shadow-md">
                         {isLoading ? 'Ingresando...' : 'Iniciar Sesión'}
                     </button>
-                
+                </form>
+
+                <div className="mt-6 text-center text-sm text-gray-600 border-t pt-4">
+                    ¿No tienes cuenta? <Link to="/registro" className="text-[#FFC72C] font-black hover:underline">Regístrate aquí</Link>
+                </div>
+            </div>
+        </div>
+    );
+}

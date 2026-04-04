@@ -1,45 +1,58 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+// Importación de Páginas Públicas
 import Login from './pages/Login';
-import Home from './pages/Home';
-import MisReservas from './pages/MisReservas';
-import FichaFisica from './pages/FichaFisica';
-import Asistencia from './pages/Asistencia';
-import GestionUsuarios from './pages/GestionUsuarios';
-import GestionBloques from './pages/GestionBloques';
-import Planes from './pages/Planes';
-import GestorRutinas from './pages/GestorRutinas';
 import Registro from './pages/Registro';
 
-const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('access_token');
-  if (!token) return <Navigate to="/login" replace />;
-  return children;
-};
+// Importación de Páginas Privadas
+import Home from './pages/Home';
+import Planes from './pages/Planes';
+import FichaFisica from './pages/FichaFisica';
+import GestionBloques from './pages/GestionBloques';
+import Asistencia from './pages/Asistencia';
+import GestorRutinas from './pages/GestorRutinas';
+import MisReservas from './pages/MisReservas';
+import GestionUsuarios from './pages/GestionUsuarios';
+
+// Importación del Guardia de Seguridad
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* ========================================== */}
+        {/* RUTAS PÚBLICAS (No necesitan iniciar sesión) */}
+        {/* ========================================== */}
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
 
-        <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-        <Route path="/reservas" element={<ProtectedRoute><MisReservas /></ProtectedRoute>} />
-        <Route path="/ficha" element={<ProtectedRoute><FichaFisica /></ProtectedRoute>} />
-        <Route path="/asistencia" element={<ProtectedRoute><Asistencia /></ProtectedRoute>} />
+        {/* ========================================== */}
+        {/* RUTAS PARA ALUMNOS (1), ENTRENADORES (2) Y ADMINS (3) */}
+        {/* ========================================== */}
+        <Route element={<ProtectedRoute allowedRoles={[1, 2, 3]} />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/planes" element={<Planes />} />
+            <Route path="/ficha" element={<FichaFisica />} />
+            <Route path="/reservas" element={<MisReservas />} />
+        </Route>
 
-        {/* <-- 2. Añade la ruta del Panel de Control de Usuarios --> */}
-        <Route
-          path="/admin/usuarios"
-          element={
-            <ProtectedRoute>
-              <GestionUsuarios />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/admin/bloques" element={<ProtectedRoute><GestionBloques /></ProtectedRoute>} />
-        <Route path="/planes" element={<ProtectedRoute><Planes /></ProtectedRoute>} />
-        <Route path="/entrenador/rutinas" element={<ProtectedRoute><GestorRutinas /></ProtectedRoute>} />
+        {/* ========================================== */}
+        {/* RUTAS SOLO PARA ENTRENADORES (2) Y ADMINS (3) */}
+        {/* ========================================== */}
+        <Route element={<ProtectedRoute allowedRoles={[2, 3]} />}>
+            <Route path="/asistencia" element={<Asistencia />} />
+            <Route path="/entrenador/rutinas" element={<GestorRutinas />} />
+        </Route>
+
+        {/* ========================================== */}
+        {/* RUTAS ESTRICTAS SOLO PARA ADMINS (3) */}
+        {/* ========================================== */}
+        <Route element={<ProtectedRoute allowedRoles={[3]} />}>
+            <Route path="/admin/bloques" element={<GestionBloques />} />
+            <Route path="/admin/usuarios" element={<GestionUsuarios />} />
+        </Route>
+
       </Routes>
     </BrowserRouter>
   );
