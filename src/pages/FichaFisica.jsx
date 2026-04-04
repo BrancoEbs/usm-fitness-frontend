@@ -141,7 +141,7 @@ export default function FichaFisica() {
                     <div className="lg:col-span-1 h-fit">
                         <div className="bg-blue-50 border-2 border-blue-200 p-6 rounded-xl shadow-sm">
                             <h3 className="font-black text-[#003057] text-xl mb-4 flex items-center gap-2">
-                                🩺 Notas del Coach
+                                 Notas del Coach
                             </h3>
                             {observacionesEntrenador ? (
                                 <p className="text-gray-700 font-medium whitespace-pre-wrap leading-relaxed">

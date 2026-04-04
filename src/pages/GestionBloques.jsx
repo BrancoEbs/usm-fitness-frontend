@@ -134,7 +134,7 @@ export default function GestionBloques() {
                 {/* ========================================== */}
                 <div className={`mb-8 p-6 rounded-xl shadow-md border-t-4 transition-colors ${config.gimnasio_abierto ? 'bg-white border-green-500' : 'bg-red-50 border-red-600'}`}>
                     <h3 className="text-xl font-black mb-4 flex items-center gap-2">
-                        ⚙️ Interruptor Maestro del Gimnasio
+                         Interruptor Maestro del Gimnasio
                     </h3>
                     <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -265,7 +265,7 @@ export default function GestionBloques() {
                                                                             disabled={guardandoBloqueId === b.id}
                                                                             className="bg-green-100 text-green-700 px-3 py-2 rounded font-bold hover:bg-green-200 transition whitespace-nowrap"
                                                                         >
-                                                                            {guardandoBloqueId === b.id ? '⏳...' : '💾 Guardar'}
+                                                                            {guardandoBloqueId === b.id ? '...' : 'Guardar'}
                                                                         </button>
                                                                         <button 
                                                                             onClick={() => eliminarBloque(b.id)}

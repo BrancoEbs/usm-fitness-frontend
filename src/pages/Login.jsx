@@ -52,7 +52,7 @@ export default function Login() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#003057]">
             <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
-                <h2 className="text-3xl font-black text-center text-[#003057] mb-6">USM FITNESS</h2>
+                <h2 className="text-3xl font-black text-center text-[#003057] mb-6">GIMNASIO USM</h2>
 
                 {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm font-bold border border-red-300">{error}</div>}
 
@@ -75,7 +75,7 @@ export default function Login() {
                             type="password"
                             placeholder="Tu contraseña"
                             required
-                            className="w-full border p-3 rounded bg-gray-50 outline-none focus:ring-2 focus:ring-[#FFC72C]"
+                            className="w-full border p-3 rounded bg-gray-50 outline-none focus:ring-2 focus:ring-[#FFC72C] font-mono text-lg tracking-wider"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />

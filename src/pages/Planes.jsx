@@ -49,9 +49,9 @@ export default function Planes() {
                                         <div className="flex items-center gap-3 mb-2">
                                             <h3 className="text-2xl md:text-3xl font-black text-gray-800">{plan.titulo}</h3>
                                             {plan.es_global ? (
-                                                <span className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">Plan Global 🌍</span>
+                                                <span className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">Plan Global </span>
                                             ) : (
-                                                <span className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">Plan Personal 👤</span>
+                                                <span className="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">Plan Personal </span>
                                             )}
                                         </div>
                                         <p className="text-sm text-gray-500 font-medium">

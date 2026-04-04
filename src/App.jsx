@@ -13,6 +13,7 @@ import Asistencia from './pages/Asistencia';
 import GestorRutinas from './pages/GestorRutinas';
 import MisReservas from './pages/MisReservas';
 import GestionUsuarios from './pages/GestionUsuarios';
+import FichasAlumnos from './pages/FichasAlumnos';
 
 // Importación del Guardia de Seguridad
 import ProtectedRoute from './components/ProtectedRoute';
@@ -43,6 +44,7 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={[2, 3]} />}>
             <Route path="/asistencia" element={<Asistencia />} />
             <Route path="/entrenador/rutinas" element={<GestorRutinas />} />
+            <Route path="/fichas-alumnos" element={<FichasAlumnos />} />
         </Route>
 
         {/* ========================================== */}

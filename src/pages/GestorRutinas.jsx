@@ -2,6 +2,73 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import api from '../api/axios';
 
+// =====================================================================
+// COMPONENTE AUXILIAR: BUSCADOR INTELIGENTE (Dropdown con buscador)
+// =====================================================================
+const BuscadorInteligente = ({ opciones, valor, alCambiar, placeholder, className }) => {
+    const [busqueda, setBusqueda] = useState('');
+    const [abierto, setAbierto] = useState(false);
+
+    const opcionSeleccionada = opciones.find(opt => opt.id === valor);
+    const opcionesFiltradas = opciones.filter(opt =>
+        opt.texto.toLowerCase().includes(busqueda.toLowerCase())
+    );
+
+    return (
+        <div className="relative w-full">
+            {/* Overlay invisible: Si haces clic afuera, se cierra el menú */}
+            {abierto && <div className="fixed inset-0 z-10" onClick={() => setAbierto(false)}></div>}
+            
+            <div 
+                className={`${className} cursor-pointer flex justify-between items-center relative z-20`}
+                onClick={() => setAbierto(!abierto)}
+            >
+                <span className={`truncate ${opcionSeleccionada ? 'text-gray-800' : 'text-gray-400 font-normal'}`}>
+                    {opcionSeleccionada ? opcionSeleccionada.texto : placeholder}
+                </span>
+                <span className="text-gray-400 text-sm ml-2">{abierto ? '▲' : '▼'}</span>
+            </div>
+
+            {abierto && (
+                <div className="absolute z-30 w-full mt-1 bg-white border-2 border-[#003057] rounded-lg shadow-2xl max-h-72 flex flex-col overflow-hidden">
+                    <div className="p-2 bg-gray-50 border-b border-gray-200">
+                        <input
+                            type="text"
+                            autoFocus
+                            className="w-full p-2 border border-gray-300 rounded outline-none focus:border-[#FFC72C] transition text-sm"
+                            placeholder="🔍 Escribe para buscar..."
+                            value={busqueda}
+                            onChange={(e) => setBusqueda(e.target.value)}
+                        />
+                    </div>
+                    <div className="overflow-y-auto">
+                        <div 
+                            className="p-3 text-sm text-red-500 font-bold hover:bg-red-50 cursor-pointer border-b border-gray-100"
+                            onClick={() => { alCambiar(''); setAbierto(false); setBusqueda(''); }}
+                        >
+                            ✖ Quitar selección
+                        </div>
+                        {opcionesFiltradas.length > 0 ? (
+                            opcionesFiltradas.map(opt => (
+                                <div
+                                    key={opt.id}
+                                    className="p-3 text-sm text-gray-700 hover:bg-[#003057] hover:text-white cursor-pointer transition border-b border-gray-50 last:border-0"
+                                    onClick={() => { alCambiar(opt.id); setAbierto(false); setBusqueda(''); }}
+                                >
+                                    {opt.texto}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="p-4 text-sm text-gray-500 text-center italic">No se encontraron resultados</div>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+// =====================================================================
+
 export default function GestorRutinas() {
     const [activeTab, setActiveTab] = useState('ejercicios'); // 'ejercicios' o 'planes'
     
@@ -53,10 +120,16 @@ export default function GestorRutinas() {
     // --- FUNCIONES PLANES DE ENTRENAMIENTO ---
     const crearPlan = async (e) => {
         e.preventDefault();
+
+        // Pequeña validación manual porque quitamos el select nativo
+        if (!nuevoPlan.es_global && !nuevoPlan.alumno_asignado) {
+            alert("Debes seleccionar un alumno para asignarle este plan.");
+            return;
+        }
+
         try {
             const payload = {
                 ...nuevoPlan,
-                // Si es global, enviamos null en el alumno. Si no, enviamos el ID.
                 alumno_asignado: nuevoPlan.es_global ? null : nuevoPlan.alumno_asignado
             };
             await api.post('planes/', payload);
@@ -104,9 +177,7 @@ export default function GestorRutinas() {
                     </div>
                 </div>
 
-                {/* ========================================== */}
-                {/* VISTA 1: CATÁLOGO DE EJERCICIOS    */}
-                {/* ========================================== */}
+                {/* VISTA 1: CATÁLOGO DE EJERCICIOS */}
                 {activeTab === 'ejercicios' && (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Crear Ejercicio */}
@@ -133,7 +204,7 @@ export default function GestorRutinas() {
                                     <textarea rows="2" className="w-full border p-2 rounded mt-1 resize-none"
                                         value={nuevoEjercicio.descripcion} onChange={e => setNuevoEjercicio({...nuevoEjercicio, descripcion: e.target.value})}></textarea>
                                 </div>
-                                <button type="submit" className="w-full bg-[#003057] text-white font-bold py-2 rounded">Guardar Ejercicio</button>
+                                <button type="submit" className="w-full bg-[#003057] text-white font-bold py-2 rounded hover:bg-blue-900 transition">Guardar Ejercicio</button>
                             </form>
                         </div>
 
@@ -151,10 +222,7 @@ export default function GestorRutinas() {
                     </div>
                 )}
 
-
-                {/* ========================================== */}
-                {/* VISTA 2: PLANES DE ENTRENAMIENTO      */}
-                {/* ========================================== */}
+                {/* VISTA 2: PLANES DE ENTRENAMIENTO */}
                 {activeTab === 'planes' && (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         
@@ -176,14 +244,18 @@ export default function GestorRutinas() {
 
                                 {!nuevoPlan.es_global && (
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700">Asignar a Alumno</label>
-                                        <select required className="w-full border p-2 rounded mt-1"
-                                            value={nuevoPlan.alumno_asignado} onChange={e => setNuevoPlan({...nuevoPlan, alumno_asignado: e.target.value})}>
-                                            <option value="">Seleccionar Alumno...</option>
-                                            {alumnos.map(al => (
-                                                <option key={al.id} value={al.id}>{al.first_name} {al.last_name} ({al.username})</option>
-                                            ))}
-                                        </select>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">Asignar a Alumno</label>
+                                        {/* AQUI APLICAMOS EL BUSCADOR 1 */}
+                                        <BuscadorInteligente 
+                                            placeholder="Buscar alumno..."
+                                            opciones={alumnos.map(al => ({ 
+                                                id: al.id, 
+                                                texto: `${al.first_name} ${al.last_name} (${al.username})` 
+                                            }))}
+                                            valor={nuevoPlan.alumno_asignado}
+                                            alCambiar={(val) => setNuevoPlan({...nuevoPlan, alumno_asignado: val})}
+                                            className="w-full border p-2 rounded mt-1 bg-white"
+                                        />
                                     </div>
                                 )}
 
@@ -193,39 +265,40 @@ export default function GestorRutinas() {
                                         value={nuevoPlan.fecha_vencimiento} onChange={e => setNuevoPlan({...nuevoPlan, fecha_vencimiento: e.target.value})} />
                                 </div>
 
-                                <button type="submit" className="w-full bg-[#FFC72C] text-[#003057] font-black py-2 rounded">Crear Plan Vacío</button>
+                                <button type="submit" className="w-full bg-[#FFC72C] text-[#003057] font-black py-3 rounded hover:bg-yellow-500 transition shadow-sm">
+                                    Crear Plan Vacío
+                                </button>
                             </form>
                         </div>
 
                         {/* Gestor de Ejercicios del Plan */}
                         <div className="lg:col-span-2 space-y-6">
+                            
                             {/* Selector de Plan a Editar */}
-                            <div className="bg-white p-4 rounded-xl shadow flex items-center gap-4">
-                                <label className="font-bold text-gray-700 whitespace-nowrap">Editar Rutina de:</label>
-                                <select 
-                                    className="w-full border-2 border-gray-200 p-2 rounded outline-none font-bold"
-                                    onChange={(e) => setPlanSeleccionado(planes.find(p => p.id === parseInt(e.target.value)) || null)}
-                                    value={planSeleccionado?.id || ""}
-                                >
-                                    <option value="">-- Selecciona un plan creado para agregarle ejercicios --</option>
-                                    {planes.map(p => (
-                                        <option key={p.id} value={p.id}>
-                                            {p.es_global ? '🌍 GLOBAL - ' : '👤 PERSONAL - '} {p.titulo}
-                                        </option>
-                                    ))}
-                                </select>
+                            <div className="bg-white p-5 rounded-xl shadow-md border border-gray-200 flex flex-col md:flex-row items-start md:items-center gap-4">
+                                <label className="font-black text-[#003057] whitespace-nowrap text-lg">✏️ Editar Rutina:</label>
+                                {/* AQUI APLICAMOS EL BUSCADOR 2 */}
+                                <BuscadorInteligente 
+                                    placeholder="-- Buscar plan creado para agregarle ejercicios --"
+                                    opciones={planes.map(p => ({ 
+                                        id: p.id, 
+                                        texto: `${p.es_global ? '🌍 GLOBAL -' : '👤 PERSONAL -'} ${p.titulo}` 
+                                    }))}
+                                    valor={planSeleccionado?.id || ""}
+                                    alCambiar={(val) => setPlanSeleccionado(planes.find(p => p.id === parseInt(val)) || null)}
+                                    className="w-full border-2 border-gray-200 p-2 rounded outline-none font-bold bg-white"
+                                />
                             </div>
 
-                            {/* Constructor de Rutinas (Solo aparece si hay un plan seleccionado) */}
+                            {/* Constructor de Rutinas */}
                             {planSeleccionado && (
-                                <div className="bg-white p-6 rounded-xl shadow-md border-2 border-[#003057]">
+                                <div className="bg-white p-6 rounded-xl shadow-lg border-2 border-[#003057]">
                                     <h3 className="text-2xl font-black text-[#003057] mb-2">{planSeleccionado.titulo}</h3>
                                     
-                                    {/* Formulario para agregar ejercicio a este plan */}
-                                    <form onSubmit={agregarEjercicioAPlan} className="bg-gray-50 p-4 rounded-lg border flex flex-wrap gap-4 items-end mb-6">
+                                    <form onSubmit={agregarEjercicioAPlan} className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex flex-wrap gap-4 items-end mb-6 shadow-inner">
                                         <div className="flex-1 min-w-[200px]">
                                             <label className="block text-xs font-bold text-gray-500 uppercase">Ejercicio del Catálogo</label>
-                                            <select required className="w-full border p-2 rounded bg-white mt-1"
+                                            <select required className="w-full border p-2 rounded bg-white mt-1 font-medium"
                                                 value={detalleRutina.ejercicio} onChange={e => setDetalleRutina({...detalleRutina, ejercicio: e.target.value})}>
                                                 <option value="">Seleccionar...</option>
                                                 {ejercicios.map(ej => <option key={ej.id} value={ej.id}>{ej.nombre} ({ej.grupo_muscular})</option>)}
@@ -233,35 +306,41 @@ export default function GestorRutinas() {
                                         </div>
                                         <div className="w-20">
                                             <label className="block text-xs font-bold text-gray-500 uppercase">Series</label>
-                                            <input type="number" required min="1" className="w-full border p-2 rounded mt-1 bg-white"
+                                            <input type="number" required min="1" className="w-full border p-2 rounded mt-1 bg-white font-medium text-center"
                                                 value={detalleRutina.series} onChange={e => setDetalleRutina({...detalleRutina, series: e.target.value})} />
                                         </div>
                                         <div className="w-24">
                                             <label className="block text-xs font-bold text-gray-500 uppercase">Reps</label>
-                                            <input type="text" required placeholder="Ej: 10-12" className="w-full border p-2 rounded mt-1 bg-white"
+                                            <input type="text" required placeholder="Ej: 10-12" className="w-full border p-2 rounded mt-1 bg-white font-medium text-center"
                                                 value={detalleRutina.repeticiones} onChange={e => setDetalleRutina({...detalleRutina, repeticiones: e.target.value})} />
                                         </div>
                                         <div className="w-24">
                                             <label className="block text-xs font-bold text-gray-500 uppercase">Desc(s)</label>
-                                            <input type="number" required step="10" className="w-full border p-2 rounded mt-1 bg-white"
+                                            <input type="number" required step="10" className="w-full border p-2 rounded mt-1 bg-white font-medium text-center"
                                                 value={detalleRutina.descanso_segundos} onChange={e => setDetalleRutina({...detalleRutina, descanso_segundos: e.target.value})} />
                                         </div>
-                                        <button type="submit" className="bg-[#003057] text-white font-bold py-2 px-4 rounded hover:bg-blue-900">+</button>
+                                        <button type="submit" className="bg-[#003057] text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-900 transition shadow-md">
+                                            Añadir
+                                        </button>
                                     </form>
 
-                                    {/* Ejercicios actuales del plan (La magia del Serializer anidado) */}
                                     <div className="space-y-3">
-                                        <h4 className="font-bold text-gray-700 border-b pb-2">Ejercicios en esta Rutina:</h4>
-                                        {planSeleccionado.rutina_interactiva?.length === 0 && <p className="text-gray-400 italic text-sm">El plan está vacío. Agrega ejercicios arriba.</p>}
+                                        <h4 className="font-bold text-gray-700 border-b pb-2 flex items-center gap-2">
+                                            📋 Ejercicios en esta Rutina
+                                        </h4>
+                                        {planSeleccionado.rutina_interactiva?.length === 0 && <p className="text-gray-400 italic text-sm">El plan está vacío. Selecciona ejercicios arriba para armar la rutina.</p>}
                                         
-                                        {/* Buscamos el plan actualizado dentro de 'planes' porque tiene la rutina anidada */}
                                         {planes.find(p => p.id === planSeleccionado.id)?.rutina_interactiva.map((detalle, index) => (
-                                            <div key={detalle.id} className="flex justify-between items-center p-3 bg-blue-50 border border-blue-100 rounded">
+                                            <div key={detalle.id} className="flex justify-between items-center p-3 bg-blue-50 hover:bg-blue-100 transition border border-blue-200 rounded-lg shadow-sm">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="bg-[#003057] text-white w-8 h-8 flex justify-center items-center rounded-full font-bold">{index + 1}</div>
+                                                    <div className="bg-[#003057] text-[#FFC72C] w-8 h-8 flex justify-center items-center rounded-full font-black shadow-sm">
+                                                        {index + 1}
+                                                    </div>
                                                     <div>
-                                                        <p className="font-bold text-[#003057]">{detalle.ejercicio_detalle.nombre}</p>
-                                                        <p className="text-xs text-gray-600">{detalle.series} series x {detalle.repeticiones} reps | {detalle.descanso_segundos}s desc.</p>
+                                                        <p className="font-black text-[#003057] text-lg leading-tight">{detalle.ejercicio_detalle.nombre}</p>
+                                                        <p className="text-sm font-medium text-gray-600 mt-0.5">
+                                                            <span className="font-bold text-gray-800">{detalle.series}</span> series × <span className="font-bold text-gray-800">{detalle.repeticiones}</span> reps | <span className="font-bold text-gray-800">{detalle.descanso_segundos}</span>s desc.
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </div>
