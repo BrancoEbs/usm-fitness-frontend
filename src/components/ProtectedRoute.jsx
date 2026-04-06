@@ -37,5 +37,5 @@ export default function ProtectedRoute({ allowedRoles }) {
     }
 
     // Si está autorizado, renderiza la ruta hija (<Outlet />). Si no, lo patea al Home.
-    return isAuthorized ? <Outlet /> : <Navigate to="/" replace />;
+    return isAuthorized ? <Outlet /> : <Navigate to="/login" replace />;
 }

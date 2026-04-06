@@ -18,41 +18,42 @@ import FichasAlumnos from './pages/FichasAlumnos';
 // Importación del Guardia de Seguridad
 import ProtectedRoute from './components/ProtectedRoute';
 
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* ========================================== */}
+        
         {/* RUTAS PÚBLICAS (No necesitan iniciar sesión) */}
-        {/* ========================================== */}
+        
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
 
-        {/* ========================================== */}
+        
         {/* RUTAS PARA ALUMNOS (1), ENTRENADORES (2) Y ADMINS (3) */}
-        {/* ========================================== */}
+        
         <Route element={<ProtectedRoute allowedRoles={[1, 2, 3]} />}>
             <Route path="/" element={<Home />} />
             <Route path="/planes" element={<Planes />} />
             <Route path="/ficha" element={<FichaFisica />} />
-            <Route path="/reservas" element={<MisReservas />} />
+            <Route path="/reservas" element={<MisReservas />} /> 
         </Route>
 
-        {/* ========================================== */}
+        
         {/* RUTAS SOLO PARA ENTRENADORES (2) Y ADMINS (3) */}
-        {/* ========================================== */}
+       
         <Route element={<ProtectedRoute allowedRoles={[2, 3]} />}>
             <Route path="/asistencia" element={<Asistencia />} />
             <Route path="/entrenador/rutinas" element={<GestorRutinas />} />
             <Route path="/fichas-alumnos" element={<FichasAlumnos />} />
+            <Route path="/admin/bloques" element={<GestionBloques />} /> 
         </Route>
 
-        {/* ========================================== */}
+        
         {/* RUTAS ESTRICTAS SOLO PARA ADMINS (3) */}
-        {/* ========================================== */}
+        
         <Route element={<ProtectedRoute allowedRoles={[3]} />}>
-            <Route path="/admin/bloques" element={<GestionBloques />} />
-            <Route path="/admin/usuarios" element={<GestionUsuarios />} />
+            <Route path="/admin/usuarios" element={<GestionUsuarios />} /> 
         </Route>
 
       </Routes>

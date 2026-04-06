@@ -102,7 +102,7 @@ export default function Home() {
                         <p className="text-gray-600 font-medium mt-1">Selecciona el día y tu módulo de entrenamiento.</p>
                     </div>
                     <span className="hidden sm:inline-block bg-blue-100 text-blue-800 px-4 py-2 rounded-lg text-sm font-bold shadow-sm">
-                        📅 Hoy: {new Date().toLocaleDateString('es-CL')}
+                         Hoy: {new Date().toLocaleDateString('es-CL')}
                     </span>
                 </div>
 
@@ -176,7 +176,7 @@ export default function Home() {
 
                                                             <div className="flex-grow mt-4 mb-6">
                                                                 <p className="text-sm text-gray-500 flex items-center gap-2">
-                                                                    <span>👤</span> Coach: <span className="font-bold text-gray-800">{b.entrenador_nombre || 'Por asignar'}</span>
+                                                                    <span></span> Coach: <span className="font-bold text-gray-800">{b.entrenador_nombre || 'Por asignar'}</span>
                                                                 </p>
                                                             </div>
 
