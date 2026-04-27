@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
 import api from '../api/axios';
 
 export default function GestionUsuarios() {
@@ -77,7 +76,6 @@ export default function GestionUsuarios() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <Navbar />
             <main className="container mx-auto p-6 max-w-7xl">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                     <div>

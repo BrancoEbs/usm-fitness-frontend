@@ -1,4 +1,7 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+
+// Importación del Navbar (Asegúrate de que la ruta sea correcta según tu carpeta)
+import Navbar from './components/Navbar'; 
 
 // Importación de Páginas Públicas
 import Login from './pages/Login';
@@ -18,45 +21,57 @@ import FichasAlumnos from './pages/FichasAlumnos';
 // Importación del Guardia de Seguridad
 import ProtectedRoute from './components/ProtectedRoute';
 
+// =====================================================================
+// COMPONENTE ENVOLTORIO: Decide dónde mostrar el Navbar
+// =====================================================================
+const LayoutPrincipal = ({ children }) => {
+  const location = useLocation();
+  // Lista de rutas donde NO queremos que se vea el Navbar
+  const rutasSinNavbar = ['/login', '/registro'];
+  const mostrarNavbar = !rutasSinNavbar.includes(location.pathname);
+
+  return (
+    <>
+      {mostrarNavbar && <Navbar />}
+      {children}
+    </>
+  );
+};
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        
-        {/* RUTAS PÚBLICAS (No necesitan iniciar sesión) */}
-        
-        <Route path="/login" element={<Login />} />
-        <Route path="/registro" element={<Registro />} />
+      {/* Envolvemos todas las rutas con nuestro Layout */}
+      <LayoutPrincipal>
+        <Routes>
+          
+          {/* RUTAS PÚBLICAS (No necesitan iniciar sesión) */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/registro" element={<Registro />} />
 
-        
-        {/* RUTAS PARA ALUMNOS (1), ENTRENADORES (2) Y ADMINS (3) */}
-        
-        <Route element={<ProtectedRoute allowedRoles={[1, 2, 3]} />}>
-            <Route path="/" element={<Home />} />
-            <Route path="/planes" element={<Planes />} />
-            <Route path="/ficha" element={<FichaFisica />} />
-            <Route path="/reservas" element={<MisReservas />} /> 
-        </Route>
+          {/* RUTAS PARA ALUMNOS (1), ENTRENADORES (2) Y ADMINS (3) */}
+          <Route element={<ProtectedRoute allowedRoles={[1, 2, 3]} />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/planes" element={<Planes />} />
+              <Route path="/ficha" element={<FichaFisica />} />
+              <Route path="/reservas" element={<MisReservas />} /> 
+          </Route>
 
-        
-        {/* RUTAS SOLO PARA ENTRENADORES (2) Y ADMINS (3) */}
-       
-        <Route element={<ProtectedRoute allowedRoles={[2, 3]} />}>
-            <Route path="/asistencia" element={<Asistencia />} />
-            <Route path="/entrenador/rutinas" element={<GestorRutinas />} />
-            <Route path="/fichas-alumnos" element={<FichasAlumnos />} />
-            <Route path="/admin/bloques" element={<GestionBloques />} /> 
-        </Route>
+          {/* RUTAS SOLO PARA ENTRENADORES (2) Y ADMINS (3) */}
+          <Route element={<ProtectedRoute allowedRoles={[2, 3]} />}>
+              <Route path="/asistencia" element={<Asistencia />} />
+              <Route path="/entrenador/rutinas" element={<GestorRutinas />} />
+              <Route path="/fichas-alumnos" element={<FichasAlumnos />} />
+              <Route path="/admin/bloques" element={<GestionBloques />} /> 
+          </Route>
 
-        
-        {/* RUTAS ESTRICTAS SOLO PARA ADMINS (3) */}
-        
-        <Route element={<ProtectedRoute allowedRoles={[3]} />}>
-            <Route path="/admin/usuarios" element={<GestionUsuarios />} /> 
-        </Route>
+          {/* RUTAS ESTRICTAS SOLO PARA ADMINS (3) */}
+          <Route element={<ProtectedRoute allowedRoles={[3]} />}>
+              <Route path="/admin/usuarios" element={<GestionUsuarios />} /> 
+          </Route>
 
-      </Routes>
+        </Routes>
+      </LayoutPrincipal>
     </BrowserRouter>
   );
 }

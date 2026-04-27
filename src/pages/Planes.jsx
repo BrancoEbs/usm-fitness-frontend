@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
 import api from '../api/axios';
 
 export default function Planes() {
@@ -27,7 +26,6 @@ export default function Planes() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <Navbar />
             <main className="container mx-auto p-6 max-w-6xl">
                 <div className="mb-8">
                     <h2 className="text-3xl font-black text-[#003057]">Mis Rutinas de Entrenamiento</h2>

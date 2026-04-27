@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
 import api from '../api/axios';
 
 export default function Home() {
@@ -94,7 +93,6 @@ export default function Home() {
     // PANTALLA 3: Vista Normal
     return (
         <div className="min-h-screen bg-gray-50">
-            <Navbar />
             <main className="container mx-auto p-6 max-w-7xl">
                 <div className="flex justify-between items-center mb-8 border-b-2 pb-4">
                     <div>

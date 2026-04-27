@@ -55,6 +55,7 @@ export default function Navbar() {
             links.push(<Link key="fichas" to="/fichas-alumnos" onClick={handleMobileClick} className={baseClass}>Fichas Alumnos</Link>);
         } else if (usuarioActual.rol === 3) {
             links.push(<Link key="asistencia" to="/asistencia" onClick={handleMobileClick} className={baseClass}>Asistencia</Link>);
+            links.push(<Link key="fichas" to="/fichas-alumnos" onClick={handleMobileClick} className={baseClass}>Fichas Alumnos</Link>); // Agregado
             links.push(<Link key="bloques" to="/admin/bloques" onClick={handleMobileClick} className={baseClass}>Gestión Horarios</Link>);
             links.push(<Link key="usuarios" to="/admin/usuarios" onClick={handleMobileClick} className={baseClass}>Gestión Usuarios</Link>);
         }

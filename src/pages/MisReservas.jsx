@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
 import api from '../api/axios';
 
 export default function MisReservas() {
@@ -46,8 +45,6 @@ export default function MisReservas() {
 
     return (
         <div className="min-h-screen bg-gray-100">
-            <Navbar />
-
             <main className="container mx-auto p-6">
                 <h2 className="text-3xl font-bold text-gray-800 mb-6">Mis Reservas</h2>
 

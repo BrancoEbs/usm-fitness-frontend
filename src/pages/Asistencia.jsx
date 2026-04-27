@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Navbar from '../components/Navbar';
 import api from '../api/axios';
 
 export default function Asistencia() {
@@ -58,7 +57,6 @@ export default function Asistencia() {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <Navbar />
             <main className="container mx-auto p-6">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                     <h2 className="text-3xl font-black text-[#003057]">Control de Asistencia</h2>
