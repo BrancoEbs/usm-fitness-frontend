@@ -1,3 +1,4 @@
+// src/components/ProtectedRoute.jsx
 import { useState, useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import api from '../api/axios';
@@ -8,17 +9,18 @@ export default function ProtectedRoute({ allowedRoles }) {
     useEffect(() => {
         const verificarPermisos = async () => {
             try {
-                // Le preguntamos al backend quién es el usuario actual
                 const res = await api.get('usuarios/me/');
-                
-                // Verificamos si su rol está dentro de los permitidos para esta ruta
-                if (allowedRoles.includes(res.data.rol)) {
+                const user = res.data;
+
+                // IMPORTANTE: Verifica que allowedRoles incluya el rol del admin (usualmente 1)
+                if (allowedRoles.includes(user.rol)) {
                     setIsAuthorized(true);
                 } else {
+                    console.error("Rol no autorizado para esta ruta");
                     setIsAuthorized(false);
                 }
             } catch (error) {
-                // Si el token expiró o hay error, no lo dejamos pasar
+                console.error("Error de autenticación", error);
                 setIsAuthorized(false);
             }
         };
@@ -26,16 +28,9 @@ export default function ProtectedRoute({ allowedRoles }) {
         verificarPermisos();
     }, [allowedRoles]);
 
-    // Mientras le pregunta al servidor, mostramos una pantalla de carga
     if (isAuthorized === null) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex flex-col justify-center items-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-[#003057]"></div>
-                <p className="mt-4 font-bold text-[#003057]">Verificando credenciales...</p>
-            </div>
-        );
+        return <div>Cargando...</div>; // O tu spinner institucional
     }
 
-    // Si está autorizado, renderiza la ruta hija (<Outlet />). Si no, lo patea al Home.
     return isAuthorized ? <Outlet /> : <Navigate to="/login" replace />;
 }

@@ -170,6 +170,7 @@ export default function Registro() {
             });
             localStorage.setItem('access_token', resLogin.data.access);
             
+            // 3. Crear la ficha física asociada al nuevo usuario (requiere token)
             await api.post('fichafisica/', {
                 peso_kg: formData.peso_kg,
                 estatura_cm: formData.estatura_cm,
@@ -177,8 +178,18 @@ export default function Registro() {
                 porcentaje_grasa: formData.porcentaje_grasa,
                 masa_muscular: formData.masa_muscular,
                 perimetro_cintura: formData.perimetro_cintura,
-                lesiones_previas: formData.lesion_articular ? 'Reportó molestias articulares' : 'Ninguna',
-                objetivo_principal: `PAR-Q: Cardíaco(${formData.condicion_cardiaca}), Mareos(${formData.mareos_desmayos}), Meds(${formData.medicacion_presion}). Notas: ${formData.observaciones_adicionales}`
+                
+                // PAR-Q: Ahora enviamos los campos booleanos directamente a la BD
+                condicion_cardiaca: formData.condicion_cardiaca,
+                dolor_pecho: formData.dolor_pecho,
+                mareos_desmayos: formData.mareos_desmayos,
+                lesion_articular: formData.lesion_articular,
+                medicacion_presion: formData.medicacion_presion,
+                recomendacion_medica: formData.recomendacion_medica,
+                
+                // Observaciones y Objetivos separados
+                lesiones_previas: formData.observaciones_adicionales || 'Ninguna reportada en el registro.',
+                objetivo_principal: '' // Lo dejamos vacío para que el alumno lo llene después en su perfil
             });
 
             alert('¡Registro y Ficha completados con éxito!');

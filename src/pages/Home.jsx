@@ -74,7 +74,7 @@ export default function Home() {
     if (!configuracion.gimnasio_abierto) {
         return (
             <div className="min-h-screen bg-gray-50">
-                <Navbar />
+                
                 <main className="container mx-auto p-6 flex justify-center items-center min-h-[70vh]">
                     <div className="bg-red-50 border-2 border-red-200 p-10 md:p-16 rounded-3xl text-center max-w-3xl shadow-xl">
                         <span className="text-7xl block mb-6 drop-shadow-md">⛔</span>
