@@ -159,7 +159,7 @@ export default function Registro() {
                 last_name: formData.last_name,
                 email: formData.email,
                 password: formData.password,
-                rol: 1
+                carrera: formData.carrera
             };
             
             await api.post('usuarios/registro/', payloadUsuario);
@@ -169,6 +169,7 @@ export default function Registro() {
                 password: formData.password
             });
             localStorage.setItem('access_token', resLogin.data.access);
+            localStorage.setItem('refresh_token', resLogin.data.refresh);
             
             // 3. Crear la ficha física asociada al nuevo usuario (requiere token)
             await api.post('fichafisica/', {
@@ -198,8 +199,9 @@ export default function Registro() {
         } catch (err) {
             console.error("🚨 DETALLE DEL ERROR:", err.response?.data);
             if (err.response?.data) {
-                const mensajeBackend = JSON.stringify(err.response.data);
-                setError(`Error del servidor: ${mensajeBackend}`);
+                // Muestra los mensajes de validación del backend en texto legible
+                const mensajes = Object.values(err.response.data).flat().filter(m => typeof m === 'string');
+                setError(mensajes.length ? mensajes.join(' ') : 'No se pudo completar el registro.');
             } else {
                 setError('Error al registrar. Verifica si el RUT o el correo ya existen.');
             }
