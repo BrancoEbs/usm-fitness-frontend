@@ -1,16 +1,30 @@
-# React + Vite
+# Gimnasio USM — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web (PWA) del sistema de reservas del gimnasio de la USM. React 19 + Vite + Tailwind CSS.
 
-Currently, two official plugins are available:
+## Requisitos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js 20 o superior (solo para compilar)
 
-## React Compiler
+## Desarrollo local
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm ci
+cp .env.example .env      # VITE_API_URL apunta al backend local
+npm run dev               # http://localhost:5173
+```
 
-## Expanding the ESLint configuration
+El backend debe estar corriendo con `DJANGO_DEBUG=True` (permite el origen `http://localhost:5173`).
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Compilación para producción
+
+```bash
+VITE_API_URL=https://gimnasio.usm.cl/api/ npm run build
+```
+
+Genera la carpeta `dist/` con archivos estáticos, que se sirven con Nginx (ver guía de despliegue). Las rutas de React Router requieren redirigir a `index.html` (`try_files $uri /index.html`). La instalación como app (PWA) requiere HTTPS.
+
+## Sesión
+
+- Login con RUT y contraseña contra `/api/token/`.
+- El token de acceso (30 min) se renueva automáticamente con el refresh token; al cerrar sesión el refresh token se invalida en el servidor (`/api/token/logout/`).

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from '../api/axios';
+import api, { cerrarSesion } from '../api/axios';
 
 export default function Navbar() {
     const [menuAbierto, setMenuAbierto] = useState(false);
@@ -26,8 +26,8 @@ export default function Navbar() {
         setMenuAbierto(!menuAbierto);
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('access_token');
+    const handleLogout = async () => {
+        await cerrarSesion();
         navigate('/login');
     };
 
